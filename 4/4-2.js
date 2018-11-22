@@ -1,58 +1,69 @@
-const int N;    //Количество случайных точек
-const int m;     //Количество ячеек гистограммы
-double sigma; //Параметр распределения Рэлея
-double sigma_est;//Оценка параметра распределения Рэлея
-int h[m + 1];    //Массив гистограммы
-double x[N];    //Массив полученных случайных чисел
-…
-srand((unsigned)time_t(0));                 //Инициализация генератора псевдослучайных чисел
+const N = 1000;    	// Количество случайных точек
+const m = 12;     	// Количество ячеек гистограммы
 
-for (int k = 0; k <= m; k++) 
+let sigma = 1; 			// Параметр распределения Рэлея
+let sigma_est;		// Оценка параметра распределения Рэлея
+
+let h = []; 		// [m + 1];    //Массив гистограммы
+let x = []; 		// [N];    //Массив полученных случайных чисел
+
+
+for (let k = 0; k <= m; k++) 
 {
 	h[k] = 0;   //Обнуление гистограммы
 }
 
-double dx = 10.0/m;                          //Ширина ячейки гистограммы
+let dx = 10.0/m;                         			//Ширина ячейки гистограммы
+let SumX2 = 0;                           			//Сумма квадратов случайных чисел
 
-double SumX2 = 0;                           //Сумма квадратов случайных чисел
-
-for (int i = 1; i < N; i++)                      //Основной цикл генерации N случайных чисел
-{
-	double r = rand()/(double)RAND_MAX;
-	x[i] = sigma*sqrt(-2*log(r));
-
+for (let i = 1; i <= N; i++) {                      	// Основной цикл генерации N случайных чисел
+	let r = Math.random();
+	x[i] = sigma * Math.sqrt(-2 * Math.log(r));
 	SumX2 = SumX2 + x[i]*x[i];
 
-	if (x[i] > 10)
-	{
-		h[m] = h[m] + 1;          //Все числа, большие 10, попадают в m-ю ячейку
-	}
-	else
-	{
-		int k = int((x[i])/dx);                      //Адрес ячейки гистограммы, в которую 							//попало число x
+	if (x[i] > 10) {
+		h[m] = h[m] + 1;          					// Все числа, большие 10, попадают в m-ю ячейку
+	} else {
+		let k = Math.floor((x[i])/dx);                    	// Адрес ячейки гистограммы, в которую 							//попало число x
 		h[k] = h[k] + 1;
 	}
 }
 
-sigma_est = sqrt(0.5*SumX2/N);
+sigma_est = Math.sqrt(0.5*SumX2/N);
 
-double tk[m + 1];                             //Массив координат ячеек гистограммы
+let tk = []; 										// [m + 1]; //Массив координат ячеек гистограммы
+let Pk = [];
 
-for (int k = 0; k <= m; k++)
+for (let k = 0; k <= m; k++)
 {
 	tk[k] = k*dx;
 }
 
-for (int k = 0; k < m; k++)
+for (let k = 0; k < m; k++)
 {
-	Pk[k] = exp(-0.5*tk[k]*tk[k]/sigma_est*sigma_est) -                    			
-            exp(-0.5*tk[k + 1]*tk[k + 1]/sigma_est*sigma_est);         //Расчет вероятностей  					//попадания в k-ю ячейку гистограммы
+	Pk[k] = Math.exp(-0.5*tk[k]*tk[k]/sigma_est*sigma_est) -                    			
+			Math.exp(-0.5*tk[k + 1]*tk[k + 1]/sigma_est*sigma_est);         //Расчет вероятностей  					//попадания в k-ю ячейку гистограммы
+	// console.log("Pk[k]", Pk[k]);
 }
-Pk[m] = exp(-0.5*tk[m]*tk[m]/sigma_est*sigma_est);                  
+Pk[m] = Math.exp(-0.5*tk[m]*tk[m]/sigma_est*sigma_est);                  
 
-double Hi = 0;                                                                    //Расчет критерия хи-квадрат
-for (int k = 0; k < m; k++)
+let Hi = 0;                                                                    //Расчет критерия хи-квадрат
+for (let k = 0; k < m; k++)
 {
-	double temp = h[k] - N*Pk[k];
-	Hi = Hi + temp*temp/(N*Pk[k]);
+	let temp = h[k] - N * Pk[k];
+	Hi = Hi + temp * temp / ( N * Pk[k] );
 }
+
+console.log('');
+console.log('sigma = ', sigma);
+console.log('Оценка sigma = ', sigma_est);
+
+console.log('Гистограмма');
+for (let k = 0; k < m; k++) {
+    console.log(k + 1, ' - ', h[k]);
+};
+console.log('');
+
+console.log('хи-квадрат = ', Hi);
+console.log('хи-квадрат cr = ', m + 3 * Math.sqrt( 2 * m ) );
+console.log('');
