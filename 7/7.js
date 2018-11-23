@@ -1,51 +1,62 @@
-constintN;    //Количество случайных точек
-double A0, B0, A, B;//Параметры смоделированной и подогнанной прямых линий
-double x[N], y[N];//Массивы координат точек
-double sigma_noise;//Параметр уровня нормального шума
-...
-srand((unsigned)time_t(0));   //Инициализация генератора псевдослучайных чисел
+const N = 50;    						// Количество случайных точек
+let A0 = -1, B0 = 2, A = 0, B = 0;		// Параметры смоделированной и подогнанной прямых линий
+let x = [], y = []; 	 				// Массивы координат точек [N] 
+let sigma_noise = 0.3; 					// Параметр уровня нормального шума
 
-for (int i = 0; i < N; i++)            //Цикл генерации точек измерений
+for (let i = 0; i < N; i++)            	// Цикл генерации точек измерений
 {
-	double error = 0;                   //Моделирование ошибки измерения на 							//основании ЦПТ
-	for (int j = 0; j < 12; j++)
-	{
-		error = error + rand()/(double)RAND_MAX;
+	let error = 0;                   	// Моделирование ошибки измерения на основании ЦПТ
+	for (let j = 0; j < 12; j++) {
+		error = error + Math.random();
 	}
-	error = (error - 6)*sigma_noise;
+	error = (error - 6) * sigma_noise;
 
 	x[i] = i;
-	y[i] = A0*x[i] + B0 + error;
+	y[i] = A0 * x[i] + B0 + error;
 }
 
-double sx, sy, sxx, syy, sxy;
+let sx, sy, sxx, syy, sxy;
 sx = sy = sxx = syy = sxy = 0;
 
-for (int i = 0; i < N; i++) //Расчет сумм, необходимых для оценки параметров прямой
+
+for (let i = 0; i < N; i++) 			// Расчет сумм, необходимых для оценки параметров прямой
 {
 	sx  = sx  + x[i];
 	sy  = sx  + y[i];
+
 	sxx = sxx + x[i]*x[i];
 	syy = syy + y[i]*y[i];
+
 	sxy = sxy + x[i]*y[i];
 }
 
-double q = N*sxx - sx*sx;                                 //Знаменатель
+let Fmin = 0;
+let q = N * sxx - sx * sx;									// Знаменатель
+if (q == 0) {                                               // Если знаменатель равен нулю…
+	console.log("Error: q = 0. Line is vertical!");
+} else {
+	A = ( N * sxy - sx * sy) / q;
+	B = ( sy * sxx - sx * sxy) / q;
+	
+	for (let i = 0; i < N; i++) {
+		Fmin = Fmin + (y[i] - A*x[i]- B) * (y[i] - A*x[i]- B);
+	}
+	
+	let sigma = Math.sqrt(Fmin/(N - 2));				// Среднеквадратичная ошибка приближения
+	let sigma_A = sigma*Math.sqrt(N/q);                 	// Погрешность расчета A
+	let sigma_B = sigma*Math.sqrt(sxx/q);              		// Погрешность расчета B
 
-if (q == 0)                                                           //Если знаменатель равен нулю…
-{
-	std::cout<<"Error: q = 0. Line is vertical!"<<std::endl;   //выводится сообщение 										//об ошибке,
-	exit(0);                                                             //и программа завершается
+	console.log("");
+	console.log("Ao = ", A0);
+	console.log("Bo = ", B0);
+	console.log("A = ", A);
+	console.log("B = ", B);
+	console.log("Fmin = ", Fmin);
+	console.log("Среднеквадратичная ошибка = ", sigma);
+	console.log("Погрешность расчета A = ", sigma_A);
+	console.log("Погрешность расчета B = ", sigma_B);
+	console.log("");
+	console.log(y);
+	console.log("");
 }
-else
-{
-	A = (N*sxy - sx*sy)/q;
-	B = (sy*sxx - sx*sxy)/q;
-}
 
-double F_min = (N*syy - sy*sy - q*A*A)/N;      //Минимальное значение функционала 									//МНК
-
-double sigma = sqrt(F_min/(N - 2));                 //Среднеквадратичная ошибка 									//приближения
-
-double sigma_A = sigma*sqrt(N/q);                 //Погрешность расчета A
-double sigma_B = sigma*sqrt(sxx/q);              //Погрешность расчета B
