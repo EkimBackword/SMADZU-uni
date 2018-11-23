@@ -1,38 +1,36 @@
-const int N;      //Количество случайных точек
-const int m;  //Количество ячеек гистограммы
-double a;//Параметр распределения Коши
-double a_est;//Оценка параметра распределения Коши
+const N = 1000;      //Количество случайных точек
+const m = 12;  //Количество ячеек гистограммы
+let a = 2;//Параметр распределения Коши
+let a_est;//Оценка параметра распределения Коши
 
-int h[m + 2];//Массив гистограммы
-double Pk[m + 2];//Массив вероятностей попадания в k-ю ячейку гистограммы
-double x[N];      //Массив полученных случайных чисел
-double x_sort[N];//Отсортированный массив случайных чисел
-…
-srand((unsigned)time_t(0));                   //Инициализация генератора псевдослучайных чисел
+let h = []; //[m + 2];//Массив гистограммы
+let Pk = []; //[m + 2];//Массив вероятностей попадания в k-ю ячейку гистограммы
+let x = []; //[N];      //Массив полученных случайных чисел
+let x_sort = []; //[N];//Отсортированный массив случайных чисел
 
-for (int k = 0; k <= m + 1; k++) 
-{
+let gamma = 1;
+
+for (let k = 0; k <= m + 1; k++) {
 	h[k] = 0;      //Обнуление гистограммы
 }
 
-for (int i = 1; i < N; i++)                      //Основной цикл генерации N случайных чисел
-{
-	double r = rand()/(double)RAND_MAX;
-	x[i] = gamma*tan(3.141593*(r - 0.5)) + a;
+for (let i = 0; i < N; i++) {                      //Основной цикл генерации N случайных чисел
+	let r = Math.random();
+	x[i] = gamma*Math.tan(3.141593*(r - 0.5)) + a;
 }
 
-for (int i = 0; i < N; i++)
+for (let i = 0; i < N; i++)
 {
 	x_sort[i] = x[i];               //Копирование неотсортированного массива в 							//отсортированный
 }
 
-for (int k = 0; k < N; k++)
+for (let k = 0; k < N; k++)
 {
-	for (int i = N; i >= k; i--)
+	for (let i = N; i >= k; i--)
 	{
 		if (x_sort[i] < x_sort[i - 1])
 		{
-			double t = x_sort [i];            //Временная переменная
+			let t = x_sort [i];            //Временная переменная
 			x_sort [i] = x_sort [i - 1];
 			x_sort [i - 1] = t;
 		}
@@ -41,9 +39,9 @@ for (int k = 0; k < N; k++)
 
 a_est = x_sort[N/2];
 
-double dx = 10.0/m;                                    //Ширина ячейки гистограммы
+let dx = 10.0/m;                                    //Ширина ячейки гистограммы
 
-for (int i = 0; i < N; i++) 
+for (let i = 0; i < N; i++) 
 {                             //Цикл заполнения гистограммы
 	if (x[i] < a_est - 5)             //Если полученное число меньше левой границы
 	{
@@ -57,28 +55,49 @@ for (int i = 0; i < N; i++)
 		}
 		else
 		{
-			int k = int((x[i] - a_est + 5)/dx) + 1;     //Адрес ячейки, в которую 										//попало число x
-			h[k] = h[k] + 1;
+			let k = Math.floor((x[i] - a_est + 5)/dx) + 1;     //Адрес ячейки, в которую 										//попало число x
+			if (k) {
+				h[k] = h[k] + 1;
+			}
 		}
 	}
 }
 
-double tk[m + 1];                               //Массив координат границ ячеек гистограммы
 
-for (int k = 1; k <= m; k++)
+
+let tk = []; //[m + 1];                               //Массив координат границ ячеек гистограммы
+
+for (let k = 0; k <= m + 1; k++)
 {
 	tk[k] = a_est - 5 + (k - 1)*dx;
 }
 
-for (int k = 1; k <= m; k++)    //Расчет вероятностей попадания в k-ю ячейку 							//гистограммы
+for (let k = 1; k <= m; k++)    //Расчет вероятностей попадания в k-ю ячейку 							//гистограммы
 {
-	Pk[k] = (atan((tk[k + 1] - a_est)/gamma) - atan((tk[k] - a_est)/gamma))/3.141593;
+	Pk[k] = (Math.atan((tk[k + 1] - a_est)/gamma) - Math.atan((tk[k] - a_est)/gamma))/3.141593;
 }	
-Pk[0] = Pk[m + 1] = (atan((tk[1] - a_est)/gamma))/3.141593 + 0.5;
+Pk[0] = Pk[m + 1] = (Math.atan((tk[1] - a_est)/gamma))/3.141593 + 0.5;
 
-double Hi = 0;                                          //Расчет критерия хи-квадрат
-for (int k = 1; k <= m; k++)
+let Hi = 0;                                          //Расчет критерия хи-квадрат
+for (let k = 1; k <= m; k++)
 {
-	double temp = h[k] - N*Pk[k];
+	let temp = h[k] - N*Pk[k];
 	Hi = Hi + temp*temp/(N*Pk[k]);
 }
+
+
+console.log('');
+console.log('a = ', a);
+console.log('Оценка a = ', a_est);
+
+console.log('Гистограмма');
+for (let k = 0; k <= m + 1; k++) {
+	console.log(k + 1, ' - ', h[k]);
+};
+console.log('');
+
+console.log('хи-квадрат = ', Hi);
+console.log('хи-квадрат cr = ', m + 3 * Math.sqrt( 2 * m ) );
+console.log('');
+console.log(h.reduce((x, y) => x + y, 0));
+console.log('');
