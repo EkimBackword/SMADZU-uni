@@ -1,32 +1,40 @@
+const fs = require("fs");
+fs.writeFileSync("9.txt", "X Y Z D E\r\n");     // Запись в файл строки со структурой обучающих примеров
+
 const N = 1000;								// Количество случайных точек
 let V = 0;									// Значение вычисляемой площади (определенного интеграла)
-let A = [];
-let B = [];
-let C = [];
-let D = [];
-let E = [];
+let D = 0;
+let E = 0;
+let a = 0, b = 1;                               //Границы интервала
 
 for (let i = 0; i < N; i++)           		// Цикл генерации точек
 {
-	let x = A[i] = Math.random();
-	let y = B[i] = Math.random();
-	let z = C[i] = Math.random();
+	let x = Math.random();
+	let y = Math.random();
+	let z = Math.random();
 
-	if (x*x + y*y < 1 && x > 0 && y > 0) {
-		D[i] = Math.sqrt(1 - A[i]*A[i] - B[i]*B[i]);
-		if (C[i] >= D[i]) {
-			E[i] = 0;
-		} else {
-			E[i] = 1;
+   	x = x*(b - a) + a;
+   	y = y*(b - a) + a;
+   	z = z*(b - a) + a;
+	
+	if ( x * x + y * y < 1 && x > 0 && y > 0) {
+		let d = Math.sqrt(1 - x*x - y*y);
+		let e = 1;
+		if (z >= d) {
+			e = 0;
 		}
+		fs.appendFileSync("9.txt", `${x} ${y} ${z} ${d} ${e}\r\n`);
+		D = D + d;
+		E = E + e;
+	} else {
+		fs.appendFileSync("9.txt", `${x} ${y} ${z} ${0} ${0}\r\n`);
 	}
-
+	
 	if (x*x + y*y + z*z < 1) {
 		V = V + 1;         					// Проверка условия попадания под поверхность сферы
 	}
 }
-let SumE = E.reduce((i, j) => j ? j+i : i, 0); 
-let V_c = SumE/N;
+let V_c = E/N;
 let custom_Pi_est = 6*V_c;
 let custom_epsilon = 2.6*Math.sqrt(V_c*(1 - V_c)/N);	//Расчет погрешности
 
