@@ -10,26 +10,26 @@ for (let k = 0; k < N1; k++) {
   m_array[k] = 0;
 }
 
-var text = fs.readFileSync('../12/12.dat','utf8')
-fs.writeFileSync("13.dat", ""); 	// Запись в файл строки со структурой обучающих примеров
+var text = fs.readFileSync('12.dat','utf8')
+fs.writeFileSync("13-r.dat", "");
 let file_array = text.split('\r\n');
 
 for (let k = 0; k < N1; k++) {
   m_array[k] = Number(file_array[k]);
 }
 
-let m_array_d = Decomposition(m_array, N1, Depth);
+let m_array_d = Decomposition([].concat(m_array), N1, Depth);
 
-// let m_array_f1 = Filtration(m_array_d, Depth, 0, 10);
-// let m_array_f2 = Filtration(m_array_f1, Depth, 1, 10);
-// let m_array_f3 = Filtration(m_array_f2, Depth, 2, 10);
+let m_array_f1 = Filtration([].concat(m_array_d), Depth, 0, 10);
+let m_array_f2 = Filtration([].concat(m_array_f1), Depth, 1, 10);
+let m_array_f3 = Filtration([].concat(m_array_f2), Depth, 2, 10);
 
-// let m_array_r = Reconstruction(m_array_f3, N1, Depth);
+let m_array_r = Reconstruction([].concat(m_array_f3), N1, Depth);
 
 for (let k = 0; k < N1; k++) {
-  fs.appendFileSync("13-d.dat", `${m_array_d[k]}\r\n`);
-  // fs.appendFileSync("13-f.dat", `${m_array_f1[k]}\r\n`);
-  // fs.appendFileSync("13.dat", `${m_array_r[k]}\r\n`);
+  if (m_array_r[k]) {
+    fs.appendFileSync("13-r.dat", `${k} ${m_array_r[k]}\r\n`);
+  }
 }
 
 
@@ -43,9 +43,9 @@ function Decomposition(m_array, N1, Depth)                    //Функция �
   let q = 2;
   let r = 1;
 
-	for (let lev = 0; lev <= Depth; lev++)  //Цикл последовательного вейвлет-разложения
+	for (let lev = 1; lev <= Depth; lev++)  //Цикл последовательного вейвлет-разложения
 	{
-		for (let k = 0; k <= p; k++)
+		for (let k = 1; k <= p; k++)
 		{
       let temp = (2*k - 1)*r;
       m_array[temp] = m_array[temp] - 0.5*(m_array[(k - 1)*q] + m_array[k*q]);
@@ -54,7 +54,7 @@ function Decomposition(m_array, N1, Depth)                    //Функция �
     m_array[0] = m_array[0] + 0.5*m_array[r]; //Здесь использовано зеркальное отражение сигнала от границ
 
     m_array[N1 - 1] = m_array[N1 - 1] + 0.5*m_array[N1 - 1 - r];        
-    for (let k = 0; k < p; k++)
+    for (let k = 1; k < p; k++)
     {		
         m_array[k*q] = m_array[k*q] + 0.25*(m_array[(2*k - 1)*r] + m_array[(2*k + 1)*r]);
     }
@@ -74,12 +74,15 @@ function Reconstruction(m_array, N1, Depth)                   //Функция �
   let r = Math.pow(2, Depth - 1);                   //двойка в степени (Depth-1)
   let q = Math.pow(2, r);                           //двойка в степени r
 
+
   for (let lev = Depth; lev > 0; lev--)     //Цикл последовательной вейвлет-сборки
   {
-    for (let k = 1; k < p; k++)
-      m_array[k*q] = m_array[k*q] - 0.25*(m_array[(2*k - 1)*r] + m_array[(2*k + 1)*r]);
+    for (let k = 1; k < p; k++) {
+      let tmp = m_array[k*q];
+      m_array[k*q] = tmp - 0.25*(m_array[(2*k - 1)*r] + m_array[(2*k + 1)*r]);
+    }
 
-    m_array[0]       = m_array[0] - 0.5*m_array[r];
+    m_array[0] = m_array[0] - 0.5*m_array[r];
     m_array[N1 - 1] = m_array[N1 - 1] - 0.5*m_array[N1 - 1 - r];
 
     for (let k = 1; k <= p; k++)
@@ -107,7 +110,7 @@ function Filtration(m_array, Depth, layer_numb, threshold)
     let layer_size = Math.pow(2, n - layer_numb);           //двойка в степени (n-layer_numb)
     let t =  Math.pow(2, layer_numb - 1);                   //двойка в степени (layer_numb-1)
 
-    for (k = 0; k < layer_size; k++)
+    for (k = 1; k < layer_size; k++)
     {
       if (Math.abs(m_array[(2*k + 1)*t]) <= threshold)      //fabs() вычисляет модуль числа (double)
         m_array[(2*k + 1)*t] = 0;
